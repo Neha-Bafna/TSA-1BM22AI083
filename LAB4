@@ -1,0 +1,88 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller, kpss
+import warnings
+warnings.filterwarnings("ignore")
+
+# -------------------------------
+# LOAD DATA
+# -------------------------------
+df = pd.read_csv("C:\\Users\\NEHA BAFNA\\Downloads\\AirPassengers - AirPassengers.csv",
+                 parse_dates=True, index_col='Month')
+df.rename(columns={'#Passengers': 'Passengers'}, inplace=True)
+
+print(df.head())
+
+
+# ============================================================
+# i. GENERATE WHITE NOISE AND VISUALIZE
+# ============================================================
+
+np.random.seed(42)  # reproducibility
+white_noise = np.random.normal(loc=0, scale=1, size=len(df))
+
+plt.figure(figsize=(10, 4))
+plt.plot(df.index, white_noise, color='purple')
+plt.title("White Noise Sequence")
+plt.xlabel("Time")
+plt.ylabel("Value")
+plt.show()
+
+
+# ============================================================
+# ii. COMPARE WHITE NOISE VS ORIGINAL TIME SERIES
+# ============================================================
+
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.plot(df.index, df['Passengers'], color='blue')
+plt.title("AirPassengers Time Series (Original)")
+plt.xlabel("Time")
+plt.ylabel("Passengers")
+
+plt.subplot(1, 2, 2)
+plt.plot(df.index, white_noise, color='purple')
+plt.title("White Noise")
+plt.xlabel("Time")
+plt.ylabel("Value")
+
+plt.tight_layout()
+plt.show()
+
+
+# ============================================================
+# iii. STATIONARITY TESTS (ADF + KPSS)
+# ============================================================
+
+# ------ AUGMENTED DICKEY FULLER (ADF) TEST ------
+adf_result = adfuller(df['Passengers'])
+
+print("\n===== ADF TEST =====")
+print(f"ADF Statistic  : {adf_result[0]}")
+print(f"p-value        : {adf_result[1]}")
+print("Critical Values:")
+for key, value in adf_result[4].items():
+    print(f"    {key}: {value}")
+
+if adf_result[1] < 0.05:
+    print("→ ADF conclusion: Time series is STATIONARY")
+else:
+    print("→ ADF conclusion: Time series is NOT stationary")
+
+
+# ------ KPSS TEST ------
+kpss_result = kpss(df['Passengers'], regression='c')
+
+print("\n===== KPSS TEST =====")
+print(f"KPSS Statistic : {kpss_result[0]}")
+print(f"p-value        : {kpss_result[1]}")
+print("Critical Values:")
+for key, value in kpss_result[3].items():
+    print(f"    {key}: {value}")
+
+if kpss_result[1] < 0.05:
+    print("→ KPSS conclusion: Time series is NOT stationary")
+else:
+    print("→ KPSS conclusion: Time series is STATIONARY")
